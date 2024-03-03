@@ -12,7 +12,7 @@ Start the program by running the command npm start in the terminal.
 
 ## Project details
 
-This project is made with Node and runs on localhost (http://localhost:5000/).
+This project is made with Node.js and runs on localhost (http://localhost:5000/).
 
 ## Design decisions
 
