@@ -1,42 +1,45 @@
 const express = require("express");
+const { check } = require("express-validator");
+const coursesControllers = require("../controllers/courses-controllers");
+
 const router = express.Router();
 
-const DUMMY_COURSES = [
-  {
-    id: "c1",
-    user: "u1",
-    name: "Course One",
-    code: "123456ABCDE",
-    description: "Course one",
-    credits: "5",
-    registeringTime: "registeringTime",
-    schedule: "schedule",
-    labs: "labs",
-    passwords: "passwords",
-    users: "users",
-  },
-  {
-    id: "c2",
-    user: "u1",
-    name: "Course Two",
-    code: "789012FGHIJ",
-    description: "Course two",
-    credits: "3",
-    registeringTime: "registeringTime",
-    schedule: "schedule",
-    labs: "labs",
-    passwords: "passwords",
-    users: "users",
-  },
-];
+router.get("/:cid", coursesControllers.getCourseById);
 
-router.get("/:cid", (req, res, next) => {
-  const courseId = req.params.cid;
-  const course = DUMMY_COURSES.find((c) => {
-    return c.id === courseId;
-  });
-  console.log("GET Request in Courses");
-  res.json({ course });
-});
+router.get("/user/:uid", coursesControllers.getCoursesByUserId);
+
+router.post(
+  "/",
+  [
+    check("name").not().isEmpty(),
+    check("code").not().isEmpty(),
+    check("description").isLength({ min: 5 }),
+    check("credits").not().isEmpty(),
+    check("registeringTime").not().isEmpty(),
+    check("schedule").not().isEmpty(),
+    check("labs").not().isEmpty(),
+    check("passwords").not().isEmpty(),
+    check("users").not().isEmpty(),
+  ],
+  coursesControllers.createCourse
+);
+
+router.patch(
+  "/:cid",
+  [
+    check("name").not().isEmpty(),
+    check("code").not().isEmpty(),
+    check("description").isLength({ min: 5 }),
+    check("credits").not().isEmpty(),
+    check("registeringTime").not().isEmpty(),
+    check("schedule").not().isEmpty(),
+    check("labs").not().isEmpty(),
+    check("passwords").not().isEmpty(),
+    check("users").not().isEmpty(),
+  ],
+  coursesControllers.updateCourse
+);
+
+router.delete("/:cid", coursesControllers.deleteCourse);
 
 module.exports = router;
