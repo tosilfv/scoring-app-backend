@@ -1,10 +1,11 @@
+const config = require("./utils/config");
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+
 const coursesRoutes = require("./routes/courses-routes");
 const usersRoutes = require("./routes/users-routes");
 const HttpError = require("./models/http-error");
-
-const PORT = 5000;
 
 const app = express();
 
@@ -26,4 +27,14 @@ app.use((error, req, res, next) => {
   res.json({ message: error.message || "An unknown error occurred!" });
 });
 
-app.listen(PORT);
+mongoose
+  .connect(config.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    app.listen(config.PORT);
+  })
+  .catch((error) => {
+    console.log(`Error connecting to MongoDB: ${error.message}`);
+  });
