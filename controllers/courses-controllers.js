@@ -1,34 +1,9 @@
-const { v4: uuidv4 } = require("uuid");
 const { validationResult } = require("express-validator");
+const mongoose = require("mongoose");
+
 const HttpError = require("../models/http-error");
-let DUMMY_COURSES = [
-  {
-    id: "c1",
-    user: "u1",
-    name: "Course One",
-    code: "123456ABCDE",
-    description: "Course one",
-    credits: "5",
-    registeringTime: "registeringTime",
-    schedule: "schedule",
-    labs: "labs",
-    passwords: "passwords",
-    users: "users",
-  },
-  {
-    id: "c2",
-    user: "u1",
-    name: "Course Two",
-    code: "789012FGHIJ",
-    description: "Course two",
-    credits: "3",
-    registeringTime: "registeringTime",
-    schedule: "schedule",
-    labs: "labs",
-    passwords: "passwords",
-    users: "users",
-  },
-];
+const Course = require("../models/course");
+const User = require("../models/user");
 
 const createCourse = async (req, res, next) => {
   const errors = validationResult(req);
@@ -51,8 +26,14 @@ const createCourse = async (req, res, next) => {
     users,
   } = req.body;
 
-  const createdCourse = {
-    id: uuidv4(),
+  let coordinates;
+  try {
+    coordinates = await getCoordsForAddress(address);
+  } catch (error) {
+    return next(error);
+  }
+
+  const createdCourse = new Course({
     user,
     name,
     code,
@@ -63,56 +44,144 @@ const createCourse = async (req, res, next) => {
     labs,
     passwords,
     users,
-  };
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Empire_State_Building_%28aerial_view%29.jpg/400px-Empire_State_Building_%28aerial_view%29.jpg",
+  });
 
-  DUMMY_COURSES.push(createdCourse);
+  let usr;
 
-  res.status(201).json({ place: createdCourse });
+  try {
+    usr = await User.findById(user);
+  } catch (err) {
+    const error = new HttpError(
+      "Creating course failed, please try again",
+      500
+    );
+    return next(error);
+  }
+
+  if (!usr) {
+    const error = new HttpError("Could not find user for provided id", 404);
+    return next(error);
+  }
+
+  console.log(usr);
+
+  try {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    await createdCourse.save({ session: session });
+    usr.courses.push(createdCourse);
+    await usr.save({ session: session });
+    await session.commitTransaction();
+  } catch (err) {
+    const error = new HttpError(
+      "Creating course failed, please try again.",
+      500
+    );
+    return next(error);
+  }
+
+  res.status(201).json({ course: createdCourse });
 };
 
-const deleteCourse = (req, res, next) => {
+const deleteCourse = async (req, res, next) => {
   const courseId = req.params.cid;
-  if (!DUMMY_COURSES.find((c) => c.id === courseId)) {
-    throw new HttpError("Could not find a course for that id.", 404);
+
+  let course;
+
+  try {
+    course = await Course.findById(courseId).populate("user");
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not delete course.",
+      500
+    );
+    return next(error);
   }
-  DUMMY_COURSES = DUMMY_COURSES.filter((c) => c.id !== courseId);
+
+  if (!course) {
+    const error = new HttpError("Could not find course for this id.", 404);
+    return next(error);
+  }
+
+  try {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    await course.remove({ session: session });
+    course.creator.courses.pull(course);
+    await course.creator.save({ session: session });
+    await session.commitTransaction();
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not delete course.",
+      500
+    );
+    return next(error);
+  }
+
   res.status(200).json({ message: "Deleted course." });
 };
 
-const getCourseById = (req, res, next) => {
+const getCourseById = async (req, res, next) => {
   const courseId = req.params.cid;
 
-  const course = DUMMY_COURSES.find((c) => {
-    return c.id === courseId;
-  });
+  let course;
 
-  if (!course) {
-    throw new HttpError("Could not find a course for the provided id.", 404);
+  try {
+    course = await Course.findById(courseId);
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not find a course.",
+      500
+    );
+    return next(error);
   }
 
-  res.json({ course });
+  if (!course) {
+    const error = new HttpError(
+      "Could not find a course for the provided id.",
+      404
+    );
+    return next(error);
+  }
+
+  res.json({ course: course.toObject({ getters: true }) });
 };
 
-const getCoursesByUserId = (req, res, next) => {
+const getCoursesByUserId = async (req, res, next) => {
   const userId = req.params.uid;
 
-  const courses = DUMMY_COURSES.filter((c) => {
-    return c.user === userId;
-  });
+  let userWithCourses;
+  try {
+    userWithCourses = await User.findById(userId).populate("courses");
+  } catch (err) {
+    const error = new HttpError(
+      "Fetching courses failed, please try again later",
+      500
+    );
+    return next(error);
+  }
 
-  if (!courses || courses.length === 0) {
+  if (!userWithCourses || userWithCourses.courses.length === 0) {
     return next(
       new HttpError("Could not find courses for the provided user id.", 404)
     );
   }
 
-  res.json({ courses });
+  res.json({
+    courses: userWithCourses.courses.map((course) =>
+      course.toObject({ getters: true })
+    ),
+  });
 };
 
-const updateCourse = (req, res, next) => {
+const updateCourse = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    throw new HttpError("Invalid inputs passed, please check your data.", 422);
+    return next(
+      new HttpError("Invalid inputs passed, please check your data.", 422)
+    );
   }
 
   const {
@@ -126,23 +195,41 @@ const updateCourse = (req, res, next) => {
     passwords,
     users,
   } = req.body;
-  const courseId = req.params.pid;
+  const courseId = req.params.cid;
 
-  const updatedCourse = { ...DUMMY_COURSES.find((c) => c.id === courseId) };
-  const courseIndex = DUMMY_COURSES.findIndex((c) => c.id === courseId);
-  updatedCourse.name = name;
-  updatedCourse.code = code;
-  updatedCourse.description = description;
-  updatedCourse.credits = credits;
-  updatedCourse.registeringTime = registeringTime;
-  updatedCourse.schedule = schedule;
-  updatedCourse.labs = labs;
-  updatedCourse.passwords = passwords;
-  updatedCourse.users = users;
+  let course;
 
-  DUMMY_COURSES[courseIndex] = updatedCourse;
+  try {
+    course = await Course.findById(courseId);
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not update course.",
+      500
+    );
+    return next(error);
+  }
 
-  res.status(200).json({ course: updatedCourse });
+  course.name = name;
+  course.code = code;
+  course.description = description;
+  course.credits = credits;
+  course.registeringTime = registeringTime;
+  course.schedule = schedule;
+  course.labs = labs;
+  course.passwords = passwords;
+  course.users = users;
+
+  try {
+    await course.save();
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not update course.",
+      500
+    );
+    return next(error);
+  }
+
+  res.status(200).json({ course: course.toObject({ getters: true }) });
 };
 
 exports.createCourse = createCourse;
