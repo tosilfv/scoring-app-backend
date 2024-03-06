@@ -26,13 +26,6 @@ const createCourse = async (req, res, next) => {
     users,
   } = req.body;
 
-  let coordinates;
-  try {
-    coordinates = await getCoordsForAddress(address);
-  } catch (error) {
-    return next(error);
-  }
-
   const createdCourse = new Course({
     user,
     name,
