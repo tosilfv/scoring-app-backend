@@ -1,4 +1,4 @@
-const config = require("./utils/config");
+const config = require("./util/config");
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -42,7 +42,6 @@ mongoose
   .connect(config.MONGODB_URI)
   .then(() => {
     app.listen(config.PORT);
-    console.log(`Connected to MongoDB.\nListening on port: ${config.PORT}`);
   })
   .catch((error) => {
     console.log(`Error connecting to MongoDB: ${error.message}`);

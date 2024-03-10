@@ -37,36 +37,31 @@ const createCourse = async (req, res, next) => {
     labs,
     passwords,
     users,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Empire_State_Building_%28aerial_view%29.jpg/400px-Empire_State_Building_%28aerial_view%29.jpg",
   });
 
   let usr;
-
   try {
     usr = await User.findById(user);
   } catch (err) {
     const error = new HttpError(
-      "Creating course failed, please try again",
+      "Creating course failed, please try again.",
       500
     );
     return next(error);
   }
 
   if (!usr) {
-    const error = new HttpError("Could not find user for provided id", 404);
+    const error = new HttpError("Could not find user for provided id.", 404);
     return next(error);
   }
 
-  console.log(usr);
-
   try {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    await createdCourse.save({ session: session });
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await createdCourse.save({ session: sess });
     usr.courses.push(createdCourse);
-    await usr.save({ session: session });
-    await session.commitTransaction();
+    await usr.save({ session: sess });
+    await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
       "Creating course failed, please try again.",
@@ -82,7 +77,6 @@ const deleteCourse = async (req, res, next) => {
   const courseId = req.params.cid;
 
   let course;
-
   try {
     course = await Course.findById(courseId).populate("user");
   } catch (err) {
@@ -99,12 +93,12 @@ const deleteCourse = async (req, res, next) => {
   }
 
   try {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    await course.remove({ session: session });
-    course.creator.courses.pull(course);
-    await course.creator.save({ session: session });
-    await session.commitTransaction();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await course.deleteOne({ session: sess });
+    course.user.courses.pull(course);
+    await course.user.save({ session: sess });
+    await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not delete course.",
@@ -113,7 +107,7 @@ const deleteCourse = async (req, res, next) => {
     return next(error);
   }
 
-  res.status(200).json({ message: "Deleted course." });
+  res.status(200).json({ message: "Deleted place." });
 };
 
 const getCourseById = async (req, res, next) => {

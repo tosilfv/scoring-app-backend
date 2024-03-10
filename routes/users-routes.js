@@ -7,16 +7,16 @@ const router = express.Router();
 
 router.get("/", usersController.getUsers);
 
-router.post("/login", usersController.login);
-
 router.post(
   "/register",
   [
     check("name").not().isEmpty(),
-    check("email").normalizeEmail().isEmail(),
-    check("password").isLength({ min: 8 }),
+    check("email").isEmail(),
+    check("password").isLength({ min: 5 }),
   ],
   usersController.register
 );
+
+router.post("/login", usersController.login);
 
 module.exports = router;
