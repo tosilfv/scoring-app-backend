@@ -13,7 +13,6 @@ const courseSchema = new Schema({
   labs: { type: String, required: true },
   passwords: { type: String, required: true },
   users: { type: String, required: true },
-  image: { type: String, required: false },
 });
 
 module.exports = mongoose.model("Course", courseSchema);
