@@ -8,13 +8,13 @@ const router = express.Router();
 router.get("/", usersController.getUsers);
 
 router.post(
-  "/register",
+  "/signup",
   [
     check("name").not().isEmpty(),
-    check("email").isEmail(),
-    check("password").isLength({ min: 5 }),
+    check("email").normalizeEmail().isEmail(),
+    check("password").isLength({ min: 6 }),
   ],
-  usersController.register
+  usersController.signup
 );
 
 router.post("/login", usersController.login);
