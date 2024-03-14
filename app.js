@@ -1,9 +1,10 @@
 const config = require("./util/config");
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 
-const coursesRoutes = require("./routes/courses-routes");
+const placesRoutes = require("./routes/places-routes");
 const usersRoutes = require("./routes/users-routes");
 const HttpError = require("./models/http-error");
 
@@ -22,7 +23,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/courses", coursesRoutes);
+app.use("/api/places", placesRoutes);
 app.use("/api/users", usersRoutes);
 
 app.use((req, res, next) => {
@@ -31,6 +32,11 @@ app.use((req, res, next) => {
 });
 
 app.use((error, req, res, next) => {
+  if (req.file) {
+    fs.unlink(req.file.path, (err) => {
+      console.log(err);
+    });
+  }
   if (res.headerSent) {
     return next(error);
   }
@@ -43,6 +49,6 @@ mongoose
   .then(() => {
     app.listen(config.PORT);
   })
-  .catch((error) => {
-    console.log(`Error connecting to MongoDB: ${error.message}`);
+  .catch((err) => {
+    console.log(err);
   });
