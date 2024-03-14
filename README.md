@@ -9,6 +9,10 @@ This is the Backend of the Scoring App.
 Install dependencies by running the command npm install.
 <br />
 Start the program by running the command npm start in the terminal.
+<br />
+Build the program by running the command npm run build:ui in the terminal.
+<br />
+npm run build:ui will remove the current frontend build folder and build a new one and copy it to the backend.
 
 ## Project details
 

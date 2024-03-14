@@ -1,4 +1,5 @@
 const config = require("./util/config");
+const cors = require("cors");
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -10,6 +11,8 @@ const HttpError = require("./models/http-error");
 
 const app = express();
 
+app.use(cors());
+app.use(express.static("dist"));
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
@@ -47,7 +50,7 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(config.MONGODB_URI)
   .then(() => {
-    app.listen(config.PORT);
+    app.listen(config.PORT || 5000);
   })
   .catch((err) => {
     console.log(err);
