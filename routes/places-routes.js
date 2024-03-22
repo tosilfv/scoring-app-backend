@@ -1,33 +1,35 @@
-const express = require("express");
-const { check } = require("express-validator");
+const express = require('express')
+const { check } = require('express-validator')
 
-const placesControllers = require("../controllers/places-controllers");
-const checkAuth = require("../middleware/check-auth");
+const placesControllers = require('../controllers/places-controllers')
+const checkAuth = require('../middleware/check-auth')
 
-const router = express.Router();
+const router = express.Router()
 
-router.get("/:pid", placesControllers.getPlaceById);
+router.get('/', placesControllers.getPlaces)
 
-router.get("/user/:uid", placesControllers.getPlacesByUserId);
+router.get('/:pid', placesControllers.getPlaceById)
 
-router.use(checkAuth);
+router.get('/user/:uid', placesControllers.getPlacesByUserId)
+
+router.use(checkAuth)
 
 router.post(
-  "/",
+  '/',
   [
-    check("title").not().isEmpty(),
-    check("description").isLength({ min: 5 }),
-    check("address").not().isEmpty(),
+    check('title').not().isEmpty(),
+    check('description').isLength({ min: 5 }),
+    check('address').not().isEmpty(),
   ],
   placesControllers.createPlace
-);
+)
 
 router.patch(
-  "/:pid",
-  [check("title").not().isEmpty(), check("description").isLength({ min: 5 })],
+  '/:pid',
+  [check('title').not().isEmpty(), check('description').isLength({ min: 5 })],
   placesControllers.updatePlace
-);
+)
 
-router.delete("/:pid", placesControllers.deletePlace);
+router.delete('/:pid', placesControllers.deletePlace)
 
-module.exports = router;
+module.exports = router
