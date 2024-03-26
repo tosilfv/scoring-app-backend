@@ -27,6 +27,11 @@ app.use((req, res, next) => {
 app.use('/api/places', placesRoutes)
 app.use('/api/users', usersRoutes)
 
+if (process.env.NODE_ENV === 'test') {
+  const testingRouter = require('./routes/testing')
+  app.use('/api/testing', testingRouter)
+}
+
 app.use((req, res, next) => {
   const error = new HttpError('Could not find this route.', 404)
   throw error
