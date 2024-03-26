@@ -115,7 +115,6 @@ const login = async (req, res, next) => {
     )
     return next(error)
   }
-
   let isValidPassword = false
   try {
     isValidPassword = await bcrypt.compare(password, existingUser.password)
@@ -150,7 +149,7 @@ const login = async (req, res, next) => {
     return next(error)
   }
 
-  res.status(303).json({
+  res.json({
     userId: existingUser.id,
     email: existingUser.email,
     token: token,

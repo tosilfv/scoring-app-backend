@@ -1,5 +1,4 @@
 const config = require('./util/config')
-const cors = require('cors')
 
 const express = require('express')
 const bodyParser = require('body-parser')
@@ -11,7 +10,6 @@ const HttpError = require('./models/http-error')
 
 const app = express()
 
-app.use(cors())
 app.use(express.static('dist'))
 app.use(bodyParser.json())
 
