@@ -1,16 +1,16 @@
 const express = require('express')
 const { check } = require('express-validator')
 
-const placesControllers = require('../controllers/places-controllers')
+const coursesControllers = require('../controllers/courses-controllers')
 const checkAuth = require('../middleware/check-auth')
 
 const router = express.Router()
 
-router.get('/', placesControllers.getPlaces)
+router.get('/', coursesControllers.getCourses)
 
-router.get('/:pid', placesControllers.getPlaceById)
+router.get('/:pid', coursesControllers.getCourseById)
 
-router.get('/user/:uid', placesControllers.getPlacesByUserId)
+router.get('/user/:uid', coursesControllers.getCoursesByUserId)
 
 router.use(checkAuth)
 
@@ -21,15 +21,15 @@ router.post(
     check('description').isLength({ min: 5 }),
     check('address').not().isEmpty(),
   ],
-  placesControllers.createPlace
+  coursesControllers.createCourse
 )
 
 router.patch(
   '/:pid',
   [check('title').not().isEmpty(), check('description').isLength({ min: 5 })],
-  placesControllers.updatePlace
+  coursesControllers.updateCourse
 )
 
-router.delete('/:pid', placesControllers.deletePlace)
+router.delete('/:pid', coursesControllers.deleteCourse)
 
 module.exports = router
