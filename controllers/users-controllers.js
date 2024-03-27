@@ -1,6 +1,6 @@
 const config = require('../util/config')
 const { validationResult } = require('express-validator')
-const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 const jwt = require('jsonwebtoken')
 
 const HttpError = require('../models/http-error')
@@ -51,7 +51,12 @@ const signup = async (req, res, next) => {
 
   let hashedPassword
   try {
-    hashedPassword = await bcrypt.hash(password, 12)
+    let salt = process.env.SALT
+    hashedPassword = await crypto
+      .createHash('sha256')
+      .update(password)
+      .update(crypto.createHash('sha256').update(salt, 'utf8').digest('hex'))
+      .digest('hex')
   } catch (err) {
     const error = new HttpError('Could not create user, please try again.', 500)
     return next(error)
@@ -117,7 +122,16 @@ const login = async (req, res, next) => {
   }
   let isValidPassword = false
   try {
-    isValidPassword = await bcrypt.compare(password, existingUser.password)
+    let salt = process.env.SALT
+    let passwordHashed = await crypto
+      .createHash('sha256')
+      .update(password)
+      .update(crypto.createHash('sha256').update(salt, 'utf8').digest('hex'))
+      .digest('hex')
+    function compare(ha, hb) {
+      isValidPassword = ha.length === hb.length && ha === hb
+    }
+    compare(passwordHashed, existingUser.password)
   } catch (err) {
     const error = new HttpError(
       'Could not log you in, please check your credentials and try again.',
