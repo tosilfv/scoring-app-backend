@@ -66,7 +66,7 @@ const signup = async (req, res, next) => {
     name,
     email,
     password: hashedPassword,
-    places: [],
+    courses: [],
   })
 
   try {
@@ -120,7 +120,13 @@ const login = async (req, res, next) => {
     )
     return next(error)
   }
+
   let isValidPassword = false
+
+  function compare(ha, hb) {
+    isValidPassword = ha.length === hb.length && ha === hb
+  }
+
   try {
     let salt = process.env.SALT
     let passwordHashed = await crypto
@@ -128,9 +134,6 @@ const login = async (req, res, next) => {
       .update(password)
       .update(crypto.createHash('sha256').update(salt, 'utf8').digest('hex'))
       .digest('hex')
-    function compare(ha, hb) {
-      isValidPassword = ha.length === hb.length && ha === hb
-    }
     compare(passwordHashed, existingUser.password)
   } catch (err) {
     const error = new HttpError(

@@ -12,13 +12,13 @@ const initialUsers = [
     name: 'TestPerson1',
     email: 'test@test1.com',
     password: 'testtest1',
-    places: [],
+    courses: [],
   },
   {
     name: 'TestPerson2',
     email: 'test@test2.com',
     password: 'testtest2',
-    places: [],
+    courses: [],
   },
 ]
 
@@ -86,7 +86,7 @@ describe('Register and login', () => {
     await api
       .post('/api/users/login')
       .send(existingUser)
-      .expect(303)
+      .expect(200)
       .expect('Content-Type', /application\/json/)
   })
 })
