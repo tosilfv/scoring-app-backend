@@ -225,5 +225,7 @@ describe('Retrieve course by user id', () => {
 })
 
 after(async () => {
+  await Course.deleteMany({})
+  await User.deleteMany({})
   await mongoose.connection.close()
 })
