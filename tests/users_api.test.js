@@ -1,10 +1,9 @@
 const { test, after, beforeEach, describe } = require('node:test')
 const assert = require('node:assert')
-const User = require('../models/user')
 const mongoose = require('mongoose')
+const User = require('../models/user')
 const supertest = require('supertest')
 const app = require('../app')
-
 const api = supertest(app)
 
 const initialUsers = [
@@ -66,13 +65,10 @@ describe('Register and login', () => {
       .expect('Content-Type', /application\/json/)
 
     const contents = response.body
-
     const usersResponse = await api.get('/api/users')
 
     assert.strictEqual(usersResponse.body.users.length, initialUsers.length + 1)
-
     assert(Object.values(contents).includes('test@test3.com'))
-
     assert(Object.hasOwn(contents, 'userId'))
     assert(Object.hasOwn(contents, 'email'))
     assert(Object.hasOwn(contents, 'token'))

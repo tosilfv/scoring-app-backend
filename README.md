@@ -1,8 +1,8 @@
-# Scoring App Backend
+# Scoring Server Backend
 
 ## Description
 
-This is the Backend of the Scoring App.
+This is the Backend of the Scoring Server.
 
 ## Installing and start up
 

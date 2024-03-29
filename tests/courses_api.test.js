@@ -5,7 +5,6 @@ const User = require('../models/user')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
-
 const api = supertest(app)
 
 const initialUsers = [
@@ -64,13 +63,11 @@ test('courses are returned as json', async () => {
 
 test('there are two courses', async () => {
   const response = await api.get('/api/courses')
-
   assert.strictEqual(response.body.courses.length, 2)
 })
 
 test('the address of the second course is addr20', async () => {
   const response = await api.get('/api/courses')
-
   const contents = response.body.courses.map((p) => p.address)
   assert.strictEqual(contents.includes('addr20'), true)
 })
@@ -197,7 +194,6 @@ describe('Retrieve course by user id', () => {
       .expect('Content-Type', /application\/json/)
 
     assert.notStrictEqual(res.body.token.length, 0)
-
     const authorization = `bearer ${res.body.token}`
 
     const newCourse = {
