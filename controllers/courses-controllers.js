@@ -16,11 +16,9 @@ const getCourses = async (req, res, next) => {
     )
     return next(error)
   }
-  res
-    .status(200)
-    .json({
-      courses: courses.map((course) => course.toObject({ getters: true })),
-    })
+  res.status(200).json({
+    courses: courses.map((course) => course.toObject({ getters: true })),
+  })
 }
 
 const getCourseById = async (req, res, next) => {
@@ -82,12 +80,19 @@ const createCourse = async (req, res, next) => {
     )
   }
 
-  const { title, description, address } = req.body
+  const { title, description, labs } = req.body
+
+  const newLabs = labs.map((lab) => {
+    return {
+      name: lab.name,
+      password: lab.password,
+    }
+  })
 
   const createdCourse = new Course({
     title,
     description,
-    address,
+    labs: newLabs,
     creator: req.userData.userId,
   })
 

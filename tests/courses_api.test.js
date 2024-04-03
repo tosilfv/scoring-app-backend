@@ -38,13 +38,16 @@ test('courses are returned as json', async () => {
     {
       title: 'Course10',
       description: 'desc10',
-      address: 'addr10',
+      labs: [{ name: 'lab10', password: '123' }],
       creator: creator,
     },
     {
       title: 'Course20',
       description: 'desc20',
-      address: 'addr20',
+      labs: [
+        { name: 'lab20', password: '123' },
+        { name: 'lab21', password: '123' },
+      ],
       creator: creator,
     },
   ]
@@ -66,10 +69,10 @@ test('there are two courses', async () => {
   assert.strictEqual(response.body.courses.length, 2)
 })
 
-test('the address of the second course is addr20', async () => {
+test('the second lab of the second course is lab21', async () => {
   const response = await api.get('/api/courses')
-  const contents = response.body.courses.map((p) => p.address)
-  assert.strictEqual(contents.includes('addr20'), true)
+  const contents = response.body.courses.map((p) => p.labs)
+  assert.strictEqual(Object.values(contents[1][1]).includes('lab21'), true)
 })
 
 test('the first course can be retrieved by its id', async () => {
@@ -116,7 +119,10 @@ describe('Create, edit and delete', () => {
     const newCourse = {
       title: 'Course30',
       description: 'desc30',
-      address: 'addr30',
+      labs: [
+        { name: 'lab30', password: '123' },
+        { name: 'lab31', password: '123' },
+      ],
       creator: res.body.userId,
     }
 
@@ -130,8 +136,8 @@ describe('Create, edit and delete', () => {
 
     const responseCourses1 = await api.get('/api/courses')
     assert.strictEqual(responseCourses1.body.courses.length, 3)
-    const contents1 = responseCourses1.body.courses.map((p) => p.address)
-    assert.strictEqual(contents1.includes('addr30'), true)
+    const contents1 = responseCourses1.body.courses.map((p) => p.labs)
+    assert.strictEqual(Object.values(contents1[2][1]).includes('lab31'), true)
 
     // EDIT
     const editedCourse = {
@@ -150,7 +156,7 @@ describe('Create, edit and delete', () => {
     const responseCourses2 = await api.get('/api/courses')
     assert.strictEqual(responseCourses2.body.courses.length, 3)
     const contents2 = responseCourses2.body.courses.map((p) => p.title)
-    assert.strictEqual(contents2.includes('Course300'), true)
+    assert.strictEqual(Object.values(contents2).includes('Course300'), true)
 
     // DELETE
     await api
@@ -162,7 +168,7 @@ describe('Create, edit and delete', () => {
     const responseCourses3 = await api.get('/api/courses')
     assert.strictEqual(responseCourses3.body.courses.length, 2)
     const contents3 = responseCourses3.body.courses.map((p) => p.title)
-    assert.strictEqual(contents3.includes('Course300'), false)
+    assert.strictEqual(Object.values(contents3).includes('Course300'), false)
   })
 })
 
@@ -199,7 +205,7 @@ describe('Retrieve course by user id', () => {
     const newCourse = {
       title: 'Course40',
       description: 'desc40',
-      address: 'addr40',
+      labs: [{ name: 'lab40', password: '123' }],
       creator: res.body.userId,
     }
 
