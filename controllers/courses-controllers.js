@@ -3,12 +3,13 @@ const mongoose = require('mongoose')
 
 const HttpError = require('../models/http-error')
 const Course = require('../models/course')
+const Lab = require('../models/lab')
 const User = require('../models/user')
 
 const getCourses = async (req, res, next) => {
   let courses
   try {
-    courses = await Course.find({})
+    courses = await Course.find({}, '-labs.password')
   } catch (err) {
     const error = new HttpError(
       'Fetching courses failed, please try again later.',
@@ -16,17 +17,15 @@ const getCourses = async (req, res, next) => {
     )
     return next(error)
   }
-  res.status(200).json({
-    courses: courses.map((course) => course.toObject({ getters: true })),
-  })
+  res.status(200).json(courses)
 }
 
 const getCourseById = async (req, res, next) => {
-  const courseId = req.params.pid
+  const courseId = req.params.cid
 
   let course
   try {
-    course = await Course.findById(courseId)
+    course = await Course.findById(courseId, '-labs.password')
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not find a course.',
@@ -43,7 +42,7 @@ const getCourseById = async (req, res, next) => {
     return next(error)
   }
 
-  res.json({ course: course.toObject({ getters: true }) })
+  res.json({ course: course })
 }
 
 const getCoursesByUserId = async (req, res, next) => {
@@ -51,7 +50,10 @@ const getCoursesByUserId = async (req, res, next) => {
 
   let userWithCourses
   try {
-    userWithCourses = await User.findById(userId).populate('courses')
+    userWithCourses = await User.findById(userId).populate(
+      'courses',
+      '-labs.password' // prevent response to frontend to contain the lab password
+    )
   } catch (err) {
     const error = new HttpError(
       'Fetching courses failed, please try again later.',
@@ -66,9 +68,7 @@ const getCoursesByUserId = async (req, res, next) => {
   }
 
   res.status(200).json({
-    courses: userWithCourses.courses.map((course) =>
-      course.toObject({ getters: true })
-    ),
+    courses: userWithCourses.courses.map((course) => course),
   })
 }
 
@@ -82,12 +82,7 @@ const createCourse = async (req, res, next) => {
 
   const { title, description, labs } = req.body
 
-  const newLabs = labs.map((lab) => {
-    return {
-      name: lab.name,
-      password: lab.password,
-    }
-  })
+  const newLabs = []
 
   const createdCourse = new Course({
     title,
@@ -95,6 +90,19 @@ const createCourse = async (req, res, next) => {
     labs: newLabs,
     creator: req.userData.userId,
   })
+
+  for (let i = 0; i < labs.length; i++) {
+    const newLab = new Lab({
+      name: labs[i].name,
+      password: labs[i].password,
+      isCompleted: false,
+      creator: req.userData.userId,
+      course: createdCourse._id,
+    })
+
+    const savedLab = await newLab.save()
+    newLabs.push(savedLab)
+  }
 
   let user
   try {
@@ -140,11 +148,11 @@ const updateCourse = async (req, res, next) => {
   }
 
   const { title, description } = req.body
-  const courseId = req.params.pid
+  const courseId = req.params.cid
 
   let course
   try {
-    course = await Course.findById(courseId)
+    course = await Course.findById(courseId, '-labs.password')
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not update course.',
@@ -171,11 +179,11 @@ const updateCourse = async (req, res, next) => {
     return next(error)
   }
 
-  res.status(200).json({ course: course.toObject({ getters: true }) })
+  res.status(200).json({ course: course })
 }
 
 const deleteCourse = async (req, res, next) => {
-  const courseId = req.params.pid
+  const courseId = req.params.cid
 
   let course
   try {
@@ -201,6 +209,18 @@ const deleteCourse = async (req, res, next) => {
     return next(error)
   }
 
+  // delete course labs from database
+  try {
+    await Lab.deleteMany({ creator: { $eq: req.userData.userId } })
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not delete course labs.',
+      500
+    )
+    return next(error)
+  }
+
+  // delete course from database
   try {
     const sess = await mongoose.startSession()
     sess.startTransaction()
