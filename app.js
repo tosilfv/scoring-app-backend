@@ -5,6 +5,7 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 
 const coursesRoutes = require('./routes/courses-routes')
+const labsRoutes = require('./routes/labs-routes')
 const usersRoutes = require('./routes/users-routes')
 const HttpError = require('./models/http-error')
 
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
 })
 
 app.use('/api/courses', coursesRoutes)
+app.use('/api/labs', labsRoutes)
 app.use('/api/users', usersRoutes)
 
 if (process.env.NODE_ENV === 'test') {

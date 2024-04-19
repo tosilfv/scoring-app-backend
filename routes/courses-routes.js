@@ -8,7 +8,7 @@ const router = express.Router()
 
 router.get('/', coursesControllers.getCourses)
 
-router.get('/:pid', coursesControllers.getCourseById)
+router.get('/:cid', coursesControllers.getCourseById)
 
 router.get('/user/:uid', coursesControllers.getCoursesByUserId)
 
@@ -25,11 +25,11 @@ router.post(
 )
 
 router.patch(
-  '/:pid',
+  '/:cid',
   [check('title').not().isEmpty(), check('description').isLength({ min: 5 })],
   coursesControllers.updateCourse
 )
 
-router.delete('/:pid', coursesControllers.deleteCourse)
+router.delete('/:cid', coursesControllers.deleteCourse)
 
 module.exports = router
