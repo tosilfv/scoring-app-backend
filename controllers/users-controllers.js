@@ -67,6 +67,7 @@ const signup = async (req, res, next) => {
     email,
     password: hashedPassword,
     courses: [],
+    isAdmin: false,
   })
 
   try {
@@ -94,9 +95,12 @@ const signup = async (req, res, next) => {
     return next(error)
   }
 
-  res
-    .status(201)
-    .json({ userId: createdUser.id, email: createdUser.email, token: token })
+  res.status(201).json({
+    userId: createdUser.id,
+    email: createdUser.email,
+    token: token,
+    isAdmin: createdUser.isAdmin,
+  })
 }
 
 const login = async (req, res, next) => {
@@ -170,6 +174,7 @@ const login = async (req, res, next) => {
     userId: existingUser.id,
     email: existingUser.email,
     token: token,
+    isAdmin: existingUser.isAdmin,
   })
 }
 
