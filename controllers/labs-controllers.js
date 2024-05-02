@@ -31,7 +31,7 @@ const checkLabPassword = async (req, res, next) => {
     if (updatedLabs[i].id === labid) {
       if (updatedLabs[i].password === labpassword) {
         isValidLabPassword = true
-        updatedLabs[i].isCompleted = true
+        updatedLabs[i].isCompleted.push(req.userData.userId)
         await updatedLabs[i].save()
       }
     }

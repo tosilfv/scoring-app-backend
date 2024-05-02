@@ -12,6 +12,7 @@ const courseSchema = new Schema(
       ref: 'Lab',
     },
     creator: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+    users: [{ type: mongoose.Types.ObjectId, required: true, ref: 'User' }],
   },
   {
     timestamps: true,

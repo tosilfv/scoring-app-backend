@@ -24,6 +24,12 @@ router.post(
   coursesControllers.createCourse
 )
 
+router.post(
+  '/join',
+  [check('courseid').not().isEmpty()],
+  coursesControllers.joinCourse
+)
+
 router.patch(
   '/:cid',
   [check('title').not().isEmpty(), check('description').isLength({ min: 5 })],
