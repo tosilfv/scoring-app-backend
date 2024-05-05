@@ -52,13 +52,20 @@ const signup = async (req, res, next) => {
   let hashedPassword
   try {
     let salt = process.env.SALT
+    console.log('salt: ', salt)
     hashedPassword = await crypto
       .createHash('sha256')
       .update(password)
       .update(crypto.createHash('sha256').update(salt, 'utf8').digest('hex'))
       .digest('hex')
+    console.log('password: ', password)
+    console.log('hashedPassword: ', hashedPassword)
   } catch (err) {
-    const error = new HttpError('Could not create user, please try again.', 500)
+    console.log('err: ', err)
+    const error = new HttpError(
+      'Could not create user, please try again. Email is not in correct form or password is too short.',
+      500
+    )
     return next(error)
   }
 
@@ -100,6 +107,7 @@ const signup = async (req, res, next) => {
     email: createdUser.email,
     token: token,
     isAdmin: createdUser.isAdmin,
+    userName: createdUser.name,
   })
 }
 
