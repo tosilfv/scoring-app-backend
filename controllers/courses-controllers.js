@@ -114,7 +114,7 @@ const createCourse = async (req, res, next) => {
         .digest('hex')
     } catch (err) {
       const error = new HttpError(
-        'Could not create lab password, please try again.',
+        `Could not create lab password, please try again, error: ${err}`,
         500
       )
       return next(error)
