@@ -109,12 +109,6 @@ const createCourse = async (req, res, next) => {
       hashedPassword = createHash('sha256')
         .update(labs[i].password)
         .digest('hex')
-      //let salt = process.env.SALT
-      //hashedPassword = await crypto
-      //  .createHash('sha256')
-      //  .update(labs[i].password)
-      //  .update(crypto.createHash('sha256').update(salt, 'utf8').digest('hex'))
-      //  .digest('hex')
     } catch (err) {
       const error = new HttpError(
         `Could not create lab password, please try again, error: ${err}`,
