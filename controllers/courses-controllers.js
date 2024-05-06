@@ -1,6 +1,6 @@
 const { validationResult } = require('express-validator')
 const mongoose = require('mongoose')
-const crypto = require('crypto')
+const { createHash } = require('crypto')
 
 const HttpError = require('../models/http-error')
 const Course = require('../models/course')
@@ -106,12 +106,15 @@ const createCourse = async (req, res, next) => {
   for (let i = 0; i < labs.length; i++) {
     let hashedPassword
     try {
-      let salt = process.env.SALT
-      hashedPassword = await crypto
-        .createHash('sha256')
+      hashedPassword = createHash('sha256')
         .update(labs[i].password)
-        .update(crypto.createHash('sha256').update(salt, 'utf8').digest('hex'))
         .digest('hex')
+      //let salt = process.env.SALT
+      //hashedPassword = await crypto
+      //  .createHash('sha256')
+      //  .update(labs[i].password)
+      //  .update(crypto.createHash('sha256').update(salt, 'utf8').digest('hex'))
+      //  .digest('hex')
     } catch (err) {
       const error = new HttpError(
         `Could not create lab password, please try again, error: ${err}`,
