@@ -1,6 +1,6 @@
 const { validationResult } = require('express-validator')
 const mongoose = require('mongoose')
-const crypto = require('crypto')
+const { createHash } = require('crypto')
 
 const HttpError = require('../models/http-error')
 const Course = require('../models/course')
@@ -36,13 +36,8 @@ const checkLabPassword = async (req, res, next) => {
   for (let i = 0; i < updatedLabs.length; i++) {
     if (updatedLabs[i].id === labid) {
       try {
-        let salt = process.env.SALT
-        let labPasswordHashed = await crypto
-          .createHash('sha256')
+        let labPasswordHashed = createHash('sha256')
           .update(labpassword)
-          .update(
-            crypto.createHash('sha256').update(salt, 'utf8').digest('hex')
-          )
           .digest('hex')
         compare(labPasswordHashed, updatedLabs[i].password)
       } catch (err) {}
