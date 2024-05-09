@@ -1,0 +1,1 @@
+import{r as a,A as s,R as e,s as t}from"./index-xtEZ8P77.js";import{C as l}from"./Card-m7_D8XDd.js";const m=()=>{const r=a.useContext(s);return e.createElement(e.Fragment,null,e.createElement(l,null,e.createElement("h3",{style:t.profileheader},"LOGGED IN USER"),e.createElement("div",{style:t.profileusername},r.userName)))};export{m as default};
