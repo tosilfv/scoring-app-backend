@@ -22,10 +22,6 @@ This project is made with Node.js and runs on localhost (http://localhost:5000/)
 
 Big thanks to Maximilian Schwarzmüller for The MERN Fullstack Guide.
 
-## NB
-
-This project is under construction.
-
 ## Known errors
 
 -

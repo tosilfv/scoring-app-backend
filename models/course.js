@@ -4,8 +4,18 @@ const Schema = mongoose.Schema
 
 const courseSchema = new Schema(
   {
-    title: { type: String, required: true },
-    description: { type: String, required: true },
+    title: {
+      type: String,
+      required: true,
+      minlength: [2, 'title must be at least 2 characters long'],
+      maxlength: [50, 'title must be at most 50 characters long'],
+    },
+    description: {
+      type: String,
+      required: true,
+      minlength: [2, 'description must be at least 2 characters long'],
+      maxlength: [5000, 'description must be at most 5000 characters long'],
+    },
     labs: {
       type: Schema.Types.Mixed,
       required: true,

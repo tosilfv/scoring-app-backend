@@ -1,7 +1,6 @@
 const config = require('../util/config')
 const { validationResult } = require('express-validator')
 const bcrypt = require('bcryptjs')
-const crypto = require('crypto')
 const jwt = require('jsonwebtoken')
 
 const HttpError = require('../models/http-error')
@@ -13,7 +12,7 @@ const getUsers = async (req, res, next) => {
     users = await User.find({}, '-password')
   } catch (err) {
     const error = new HttpError(
-      'Fetching users failed, please try again later.',
+      `Fetching users failed, please try again later. ${err}`,
       500
     )
     return next(error)
@@ -25,7 +24,10 @@ const signup = async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     return next(
-      new HttpError('Invalid inputs passed, please check your data.', 422)
+      new HttpError(
+        `Invalid inputs passed, please check your data. ${errors}`,
+        422
+      )
     )
   }
 
@@ -36,7 +38,7 @@ const signup = async (req, res, next) => {
     existingUser = await User.findOne({ email: email })
   } catch (err) {
     const error = new HttpError(
-      'Signing up failed, please try again later.',
+      `Signing up failed, please try again later. ${err}`,
       500
     )
     return next(error)
@@ -55,7 +57,7 @@ const signup = async (req, res, next) => {
     hashedPassword = await bcrypt.hash(password, 12)
   } catch (err) {
     const error = new HttpError(
-      'Could not create user, please contact support.',
+      `Could not create password, please contact support. ${err}`,
       500
     )
     return next(error)
@@ -73,7 +75,7 @@ const signup = async (req, res, next) => {
     await createdUser.save()
   } catch (err) {
     const error = new HttpError(
-      'Signing up failed, please try again later.',
+      `Cannot create user, please try again later. ${err}`,
       500
     )
     return next(error)
@@ -88,7 +90,7 @@ const signup = async (req, res, next) => {
     )
   } catch (err) {
     const error = new HttpError(
-      'Signing up failed, please try again later.',
+      `Signing up failed, please try again later. ${err}`,
       500
     )
     return next(error)
@@ -111,7 +113,7 @@ const login = async (req, res, next) => {
     existingUser = await User.findOne({ email: email }) // All Users User.find({})
   } catch (err) {
     const error = new HttpError(
-      'Logging in failed, please try again later.',
+      `Logging in failed, please try again later. ${err}`,
       500
     )
     return next(error)
@@ -153,7 +155,7 @@ const login = async (req, res, next) => {
     )
   } catch (err) {
     const error = new HttpError(
-      'Logging in failed, please try again later.',
+      `Logging in failed, please try again later. ${err}`,
       500
     )
     return next(error)

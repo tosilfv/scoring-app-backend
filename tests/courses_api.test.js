@@ -13,12 +13,14 @@ const initialUsers = [
     email: 'test@test10.com',
     password: 'testtest10',
     courses: [],
+    isAdmin: false,
   },
   {
     name: 'TestPerson20',
     email: 'test@test20.com',
     password: 'testtest20',
     courses: [],
+    isAdmin: false,
   },
 ]
 

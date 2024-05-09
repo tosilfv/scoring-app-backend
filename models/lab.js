@@ -4,8 +4,20 @@ const Schema = mongoose.Schema
 
 const labSchema = new Schema(
   {
-    name: { type: String, required: true },
-    password: { type: String, required: true },
+    name: {
+      type: String,
+      required: true,
+      minlength: [1, 'name must be at least 1 character long'],
+      maxlength: [30, 'name must be at most 30 characters long'],
+      match: [
+        /^[a-zA-Z0-9_-]{1,30}$/,
+        'name must not contain white spaces or special characters other than _ or -',
+      ],
+    },
+    password: {
+      type: String,
+      required: true,
+    },
     isCompleted: [
       { type: mongoose.Types.ObjectId, required: true, ref: 'User' },
     ],
@@ -15,20 +27,6 @@ const labSchema = new Schema(
   {
     timestamps: true,
     versionKey: false, // remove .__v from mongodb
-    //toObject: {
-    //  virtuals: true,
-    //  transform(doc, ret) {
-    //    ret.id = ret._id
-    //    delete ret._id
-    //  },
-    //},
-    //toJSON: {
-    //  virtuals: true,
-    //  transform(doc, ret) {
-    //    ret.id = ret._id
-    //    delete ret._id
-    //  },
-    //},
   }
 )
 

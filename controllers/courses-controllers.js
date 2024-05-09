@@ -13,7 +13,7 @@ const getCourses = async (req, res, next) => {
     courses = await Course.find({}, '-labs.password')
   } catch (err) {
     const error = new HttpError(
-      'Fetching courses failed, please try again later.',
+      `Fetching courses failed, please contact support. ${err}`,
       500
     )
     return next(error)
@@ -29,7 +29,7 @@ const getCourseById = async (req, res, next) => {
     course = await Course.findById(courseId, '-labs.password')
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not find a course.',
+      `Something went wrong, could not find a course. ${err}`,
       500
     )
     return next(error)
@@ -54,7 +54,7 @@ const getCoursesByUserId = async (req, res, next) => {
     coursesWithUser = await Course.find({ users: userId })
   } catch (err) {
     const error = new HttpError(
-      'Fetching courses with user failed, please try again later.',
+      `Fetching courses with user failed, please contact support. ${err}`,
       500
     )
     return next(error)
@@ -71,7 +71,7 @@ const getCoursesByUserId = async (req, res, next) => {
     user = await User.findById(userId)
   } catch (err) {
     const error = new HttpError(
-      'Creating course failed, please try again.',
+      `Cannot find user, please contact support. ${err}`,
       500
     )
     return next(error)
@@ -87,7 +87,10 @@ const createCourse = async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     return next(
-      new HttpError('Invalid inputs passed, please check your data.', 422)
+      new HttpError(
+        `Invalid inputs passed, please check your data. ${errors}`,
+        422
+      )
     )
   }
 
@@ -103,15 +106,31 @@ const createCourse = async (req, res, next) => {
     users: [],
   })
 
+  let user
+  try {
+    user = await User.findById(req.userData.userId)
+  } catch (err) {
+    const error = new HttpError(
+      `Finding user failed, please try again. ${err}`,
+      500
+    )
+    return next(error)
+  }
+
+  if (!user) {
+    const error = new HttpError('Could not find user for the provided id.', 404)
+    return next(error)
+  }
+
   for (let i = 0; i < labs.length; i++) {
     let hashedPassword
     try {
       hashedPassword = createHash('sha256')
-        .update(labs[i].password)
+        .update(`${user.email}${labs[i].password}`)
         .digest('hex')
     } catch (err) {
       const error = new HttpError(
-        `Could not create lab password, please try again, error: ${err}`,
+        `Could not create lab password, please contact support. ${err}`,
         500
       )
       return next(error)
@@ -128,22 +147,6 @@ const createCourse = async (req, res, next) => {
     newLabs.push(savedLab)
   }
 
-  let user
-  try {
-    user = await User.findById(req.userData.userId)
-  } catch (err) {
-    const error = new HttpError(
-      'Creating course failed, please try again.',
-      500
-    )
-    return next(error)
-  }
-
-  if (!user) {
-    const error = new HttpError('Could not find user for provided id.', 404)
-    return next(error)
-  }
-
   try {
     const sess = await mongoose.startSession()
     sess.startTransaction()
@@ -152,9 +155,8 @@ const createCourse = async (req, res, next) => {
     await user.save({ session: sess })
     await sess.commitTransaction()
   } catch (err) {
-    console.log('err: ', err)
     const error = new HttpError(
-      'Creating course failed, please try again.',
+      `Creating course failed, please contact support. ${err}`,
       500
     )
     return next(error)
@@ -167,7 +169,10 @@ const joinCourse = async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     return next(
-      new HttpError('Invalid inputs passed, please check your data.', 422)
+      new HttpError(
+        `Invalid inputs passed, please check your data. ${errors}`,
+        422
+      )
     )
   }
 
@@ -178,7 +183,7 @@ const joinCourse = async (req, res, next) => {
     course = await Course.findById(courseid, '-labs.password')
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not find a course.',
+      `Something went wrong, could not find a course. Please contact support. ${err}`,
       500
     )
     return next(error)
@@ -197,7 +202,7 @@ const joinCourse = async (req, res, next) => {
     user = await User.findById(req.userData.userId)
   } catch (err) {
     const error = new HttpError(
-      'Creating course failed, please try again.',
+      `Finding user failed, please contact support. ${err}`,
       500
     )
     return next(error)
@@ -212,8 +217,10 @@ const joinCourse = async (req, res, next) => {
     await user.save({ session: sess })
     await sess.commitTransaction()
   } catch (err) {
-    console.log('err: ', err)
-    const error = new HttpError('Joining course failed, please try again.', 500)
+    const error = new HttpError(
+      `Joining course failed, please contact support. ${err}`,
+      500
+    )
     return next(error)
   }
 
@@ -224,7 +231,10 @@ const updateCourse = async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     return next(
-      new HttpError('Invalid inputs passed, please check your data.', 422)
+      new HttpError(
+        `Invalid inputs passed, please check your data. ${errors}`,
+        422
+      )
     )
   }
 
@@ -236,7 +246,7 @@ const updateCourse = async (req, res, next) => {
     course = await Course.findById(courseId, '-labs.password')
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not update course.',
+      `Something went wrong, could not find the course. Please contact support. ${err}`,
       500
     )
     return next(error)
@@ -254,7 +264,7 @@ const updateCourse = async (req, res, next) => {
     await course.save()
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not update course.',
+      `Something went wrong, could not save the course. Please contact support. ${err}`,
       500
     )
     return next(error)
@@ -271,14 +281,17 @@ const deleteCourse = async (req, res, next) => {
     course = await Course.findById(courseId).populate('creator')
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not delete course.',
+      `Something went wrong, could not delete course. ${err}`,
       500
     )
     return next(error)
   }
 
   if (!course) {
-    const error = new HttpError('Could not find course for this id.', 404)
+    const error = new HttpError(
+      'Could not find course for this id. Please contact support.',
+      404
+    )
     return next(error)
   }
 
@@ -295,7 +308,7 @@ const deleteCourse = async (req, res, next) => {
     await Lab.deleteMany({ course: { $eq: course } })
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not delete course labs.',
+      `Something went wrong, could not delete the course labs. ${err}`,
       500
     )
     return next(error)
@@ -311,7 +324,7 @@ const deleteCourse = async (req, res, next) => {
     await sess.commitTransaction()
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not delete course.',
+      `Something went wrong, could not delete course. ${err}`,
       500
     )
     return next(error)
@@ -323,7 +336,7 @@ const deleteCourse = async (req, res, next) => {
     usersWithCourse = await User.find({ courses: courseId })
   } catch (err) {
     const error = new HttpError(
-      'Fetching users with course failed, please try again later.',
+      `Fetching users with course failed, please contact support. ${err}`,
       500
     )
     return next(error)
@@ -338,7 +351,7 @@ const deleteCourse = async (req, res, next) => {
     })
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not delete course from user.',
+      `Something went wrong, could not delete course from user. Please contact support. ${err}`,
       500
     )
     return next(error)
